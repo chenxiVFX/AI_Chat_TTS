@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat TTS - 智能语音合成平台</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 主导航标签页 -->
+        <nav class="main-nav">
+            <div class="nav-container">
+                <div class="nav-left">
+                    <div class="logo">
+                        <i class="fas fa-microphone-alt"></i>
+                        <span>AI Chat TTS</span>
+                    </div>
+                </div>
+                <div class="nav-center">
+                    <button type="button" class="nav-tab active" data-module="ai-chat">
+                        <i class="fas fa-comments"></i>
+                        <span>AI对话</span>
+                    </button>
+                    <button type="button" class="nav-tab" data-module="manual-synthesis">
+                        <i class="fas fa-edit"></i>
+                        <span>手动合成</span>
+                    </button>
+                    <button type="button" class="nav-tab" data-module="voice-management">
+                        <i class="fas fa-microphone"></i>
+                        <span>音色管理</span>
+                    </button>
+                </div>
+                <div class="nav-right">
+                    <!-- 空白区域，保持布局平衡 -->
+                </div>
+            </div>
+        </nav>
+
+        <!-- 主内容区域 -->
+        <main class="main-content">
+            <!-- AI对话模块 -->
+            <div id="aiChatModule" class="module-content active">
+                <div class="module-layout">
+                    <!-- 左侧设置面板 -->
+                    <aside class="settings-sidebar">
+                        <div class="settings-container">
+                            <!-- AI对话设置 -->
+                            <section class="setting-section">
+                                <h3 class="section-title">
+                                    <i class="fas fa-robot"></i>
+                                    AI对话设置
+                                </h3>
+                                
+                                <div class="setting-group">
+                                    <label for="aiModel">选择对话模型</label>
+                                    <select id="aiModel" class="form-select">
+                                        <option value="Pro/deepseek-ai/DeepSeek-V3">DeepSeek-V3</option>
+                                        <option value="Pro/deepseek-ai/DeepSeek-R1">DeepSeek-R1</option>
+                                        <option value="Qwen/Qwen3-Coder-480B-A35B-Instruct">Qwen3-Coder-480B</option>
+                                        <option value="Pro/moonshotai/Kimi-K2-Instruct">Kimi-K2</option>
+                                    </select>
+                                </div>
+
+                                <div class="setting-group">
+                                    <label for="apiKeyType">API密钥</label>
+                                    <select id="apiKeyType" class="form-select">
+                                        <option value="builtin">内置API密钥</option>
+                                        <option value="custom">自定义密钥</option>
+                                    </select>
+                                </div>
+
+                                <div id="customApiKeySection" class="setting-group hidden">
+                                    <label for="customApiKey">输入密钥</label>
+                                    <input type="password" id="customApiKey" class="form-input" placeholder="请输入您的API密钥">
+                                </div>
+
+                                <!-- 附加提示词设置 -->
+                                <div class="setting-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="enableSystemPrompt">
+                                        <span class="checkmark"></span>
+                                        启用附加提示词
+                                    </label>
+                                </div>
+
+                                <div id="promptConfigSection" class="setting-group hidden">
+                                    <button type="button" id="configPromptBtn" class="btn-secondary">
+                                        <i class="fas fa-cog"></i> 配置提示词
+                                    </button>
+                                </div>
+
+                            </section>
+
+                            <!-- 语音合成设置 -->
+                            <section class="setting-section">
+                                <h3 class="section-title">
+                                    <i class="fas fa-volume-up"></i>
+                                    语音合成设置
+                                </h3>
+
+                                <!-- 是否启用语音合成 -->
+                                <div class="setting-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="enableTTS" checked>
+                                        <span class="checkmark"></span>
+                                        启用语音合成
+                                    </label>
+                                </div>
+
+                                <!-- TTS相关设置（条件显示） -->
+                                <div id="ttsSettings" class="tts-settings">
+                                    <!-- TTS API密钥 -->
+                                    <div class="setting-group">
+                                        <label for="ttsApiKeyType">TTS API密钥</label>
+                                        <select id="ttsApiKeyType" class="form-select">
+                                            <option value="builtin">内置API密钥</option>
+                                            <option value="custom">自定义密钥</option>
+                                        </select>
+                                    </div>
+
+                                    <div id="customTtsApiKeySection" class="setting-group hidden">
+                                        <label for="customTtsApiKey">输入TTS密钥</label>
+                                        <input type="password" id="customTtsApiKey" class="form-input" placeholder="请输入您的TTS API密钥">
+                                    </div>
+
+                                    <!-- 语音合成模式 -->
+                                    <div class="setting-group">
+                                        <label for="ttsMode">语音合成模式</label>
+                                        <select id="ttsMode" class="form-select">
+                                            <option value="builtin">内置音色</option>
+                                            <option value="temp_custom">临时自定义音色(每次都要上传)</option>
+                                            <option value="custom_list">自定义音色列表</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- 内置音色选择 -->
+                                    <div id="builtinVoiceSection" class="setting-group">
+                                        <label for="builtinVoice">选择音色</label>
+                                        <select id="builtinVoice" class="form-select">
+                                            <option value="alex">Alex - 沉稳男声</option>
+                                            <option value="benjamin">Benjamin - 低沉男声</option>
+                                            <option value="charles">Charles - 磁性男声</option>
+                                            <option value="david">David - 欢快男声</option>
+                                            <option value="anna">Anna - 沉稳女声</option>
+                                            <option value="bella">Bella - 激情女声</option>
+                                            <option value="claire">Claire - 温柔女声</option>
+                                            <option value="diana">Diana - 欢快女声</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- 临时自定义音色设置 -->
+                                    <div id="tempCustomVoiceSection" class="setting-group hidden">
+                                        <label for="tempReferenceAudio">上传参考音频</label>
+                                        <input type="file" id="tempReferenceAudio" class="form-file" accept="audio/*">
+
+                                        <div id="tempAudioPreview" class="audio-preview hidden">
+                                            <audio controls class="audio-preview-player">
+                                                <source id="tempAudioSource" type="audio/mpeg">
+                                            </audio>
+                                        </div>
+
+                                        <label for="tempReferenceText">输入参考文本</label>
+                                        <textarea id="tempReferenceText" class="form-textarea" placeholder="请输入参考音频对应的文本内容"></textarea>
+                                    </div>
+
+                                    <!-- 自定义音色列表 -->
+                                    <div id="customVoiceListSection" class="setting-group hidden">
+                                        <label>自定义音色列表</label>
+                                        <div id="voiceCardsList" class="voice-cards">
+                                            <!-- 动态生成的音色卡片 -->
+                                        </div>
+                                    </div>
+
+                                    <!-- 语速控制 -->
+                                    <div class="setting-group">
+                                        <label for="ttsSpeed">语速控制</label>
+                                        <div class="speed-control">
+                                            <input type="range" id="ttsSpeed" class="form-range" min="0.25" max="4.0" step="0.25" value="1.0">
+                                            <div class="speed-display">
+                                                <span class="speed-label">0.25x</span>
+                                                <span id="currentSpeed" class="speed-value">1.0x</span>
+                                                <span class="speed-label">4.0x</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 智能情感设置 -->
+                                    <div class="setting-group">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="autoEmotionDetection" checked>
+                                            <span class="checkmark"></span>
+                                            自动情感识别
+                                        </label>
+                                        <div id="emotionHint" class="setting-hint">AI分析情感趋向，此操作调用的是deepseekv3模型进行二次自动加工，会自动识别用户的需求然后添加控制词和情感爆破词，开启后会一定程度的减缓音频输出速度，会产生额外的费用</div>
+                                        <div id="manualEmotionPrompt" class="setting-group hidden">
+                                            <label for="emotionPromptText">情感提示词</label>
+                                            <textarea id="emotionPromptText" class="form-textarea" rows="3" placeholder="输入自定义情感提示词，例如：你能用开心的情感说吗？<|endofprompt|>"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </aside>
+
+                    <!-- 右侧对话区域 -->
+                    <div class="chat-area">
+                        <div class="chat-header">
+                            <div class="current-model">
+                                <i class="fas fa-brain"></i>
+                                <span id="currentModelName">DeepSeek-V3</span>
+                            </div>
+                            <div class="header-actions">
+                                <button type="button" id="newChat" class="btn-secondary">
+                                    <i class="fas fa-plus"></i> 新对话
+                                </button>
+                                <button type="button" id="showHistory" class="btn-secondary">
+                                    <i class="fas fa-history"></i> 历史记录
+                                </button>
+                                <button type="button" id="exportChat" class="btn-secondary">
+                                    <i class="fas fa-download"></i> 导出
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="welcome-message">
+                                <div class="welcome-icon">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <h2>欢迎使用AI智能聊天助手</h2>
+                                <p>此项目可以将AI对话和语音合成结合，将AI对话自动合成语音。对话记录、参数设定数据保存在本地浏览器缓存中，如需清除，按ctrl+F5刷新页面即可。</p>
+                                <p>全程使用硅基流动的API接口，只接受硅基流动的个人api秘钥,TTS为FunAudioLLM/CosyVoice2-0.5B模型。</p>
+                            </div>
+                        </div>
+
+                        <div class="chat-input-container">
+                            <div class="input-wrapper">
+                                <textarea 
+                                    id="messageInput" 
+                                    placeholder="输入您的消息..." 
+                                    rows="3"
+                                    maxlength="2000"
+                                ></textarea>
+                            </div>
+                            <div class="input-footer">
+                                <div class="input-left">
+                                    <span class="char-count">0/2000</span>
+                                    <span class="input-tips">按 Enter 发送，Shift+Enter 换行</span>
+                                </div>
+                                <div class="input-actions">
+                                    <button type="button" id="voiceInput" class="btn-voice" title="语音输入" aria-label="语音输入">
+                                        <i class="fas fa-microphone"></i>
+                                    </button>
+                                    <button type="button" id="sendMessage" class="btn-send" title="发送消息" aria-label="发送消息">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 手动合成模块 -->
+            <div id="manualSynthesisModule" class="module-content">
+                <div class="synthesis-layout">
+                    <div class="synthesis-header">
+                        <h2>
+                            <i class="fas fa-edit"></i>
+                            手动语音合成
+                        </h2>
+                        <p>输入文本内容，选择音色和情感，生成高质量语音</p>
+                    </div>
+
+                    <div class="synthesis-main">
+                        <div class="synthesis-left">
+                            <!-- 文本输入区域 -->
+                            <div class="text-section">
+                                <h3>文本输入</h3>
+                                <textarea 
+                                    id="synthesisText" 
+                                    class="synthesis-textarea" 
+                                    placeholder="请输入要合成的文本内容..." 
+                                    rows="12"
+                                    maxlength="1000"
+                                ></textarea>
+                                <div class="text-footer">
+                                    <div class="char-count">
+                                        <span class="current">0</span>/<span class="max">1000</span>
+                                    </div>
+                                    <div class="text-actions">
+                                        <button type="button" id="clearSynthesisText" class="btn-outline">
+                                            <i class="fas fa-trash"></i> 清空
+                                        </button>
+                                        <button type="button" id="pasteSynthesisText" class="btn-outline">
+                                            <i class="fas fa-clipboard"></i> 粘贴
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- 情感控制语法说明 -->
+                                <div class="syntax-help">
+                                    <h4><i class="fas fa-info-circle"></i> 情感控制语法说明</h4>
+                                    <div class="help-content">
+                                        <p><strong>情感提示词语法：</strong></p>
+                                        <p><code>情感描述 &lt;|endofprompt|&gt; 要合成的文本</code></p>
+
+                                        <p><strong>示例：</strong></p>
+                                        <ul>
+                                            <li><code>你能用开心的情感说吗？&lt;|endofprompt|&gt;今天真是太开心了，马上要放假了！</code></li>
+                                            <li><code>Can you say it with a sad emotion? &lt;|endofprompt|&gt;I'm so sorry to hear that.</code></li>
+                                            <li><code>请用温柔的语调说&lt;|endofprompt|&gt;晚安，好梦。</code></li>
+                                        </ul>
+
+                                        <p><strong>情感标签：</strong></p>
+                                        <p>还可以使用情感标签：<code>[laughter]</code>、<code>[whisper]</code>、<code>[excited]</code> 等</p>
+                                        <p><strong>示例：</strong> <code>[laughter]有时候，看着小孩子们的天真行为[laughter]，我们总会会心一笑。</code></p>
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="synthesis-right">
+                            <!-- 音色设置 -->
+                            <div class="voice-section">
+                                <h3>音色设置</h3>
+                                <div class="setting-group">
+                                    <label for="synthesisVoiceMode">音色模式</label>
+                                    <select id="synthesisVoiceMode" class="form-select">
+                                        <option value="builtin">内置音色</option>
+                                        <option value="temp_custom">创建临时自定义音色</option>
+                                        <option value="custom_list">自定义音色列表</option>
+                                    </select>
+                                </div>
+
+                                <div id="synthesisBuiltinVoice" class="setting-group">
+                                    <label for="synthesisVoice">选择音色</label>
+                                    <select id="synthesisVoice" class="form-select">
+                                        <option value="alex">Alex - 沉稳男声</option>
+                                        <option value="benjamin">Benjamin - 低沉男声</option>
+                                        <option value="charles">Charles - 磁性男声</option>
+                                        <option value="david">David - 欢快男声</option>
+                                        <option value="anna">Anna - 沉稳女声</option>
+                                        <option value="bella">Bella - 激情女声</option>
+                                        <option value="claire">Claire - 温柔女声</option>
+                                        <option value="diana">Diana - 欢快女声</option>
+                                    </select>
+                                </div>
+
+                                <div id="synthesisTempCustomVoice" class="setting-group hidden">
+                                    <label for="synthesisTempReferenceAudio">上传参考音频</label>
+                                    <input type="file" id="synthesisTempReferenceAudio" class="form-file" accept="audio/*">
+
+                                    <div id="synthesisTempAudioPreview" class="audio-preview hidden">
+                                        <audio controls class="audio-preview-player">
+                                            <source id="synthesisTempAudioSource" type="audio/mpeg">
+                                        </audio>
+                                    </div>
+
+                                    <label for="synthesisTempReferenceText">输入参考文本</label>
+                                    <textarea id="synthesisTempReferenceText" class="form-textarea" placeholder="请输入参考音频对应的文本内容"></textarea>
+                                </div>
+
+                                <div id="synthesisCustomVoice" class="setting-group hidden">
+                                    <label>自定义音色列表</label>
+                                    <div id="synthesisVoiceCards" class="voice-cards-mini">
+                                        <!-- 动态生成音色卡片 -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 语速设置 -->
+                            <div class="speed-section">
+                                <h3>语速设置</h3>
+                                <div class="speed-control">
+                                    <input type="range" id="synthesisSpeed" class="form-range" min="0.25" max="4.0" step="0.25" value="1.0">
+                                    <div class="speed-display">
+                                        <span class="speed-label">0.25x</span>
+                                        <span id="currentSynthesisSpeed" class="speed-value">1.0x</span>
+                                        <span class="speed-label">4.0x</span>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+                            <!-- 合成控制 -->
+                            <div class="synthesis-controls">
+                                <button type="button" id="startSynthesis" class="btn-primary synthesis-btn">
+                                    <i class="fas fa-play"></i>
+                                    开始合成
+                                </button>
+                                <button type="button" id="downloadSynthesis" class="btn-secondary" disabled>
+                                    <i class="fas fa-download"></i>
+                                    下载音频
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 音色管理模块 -->
+            <div id="voiceManagementModule" class="module-content">
+                <div class="voice-management-layout">
+                    <div class="voice-management-header">
+                        <h2>
+                            <i class="fas fa-microphone"></i>
+                            音色管理中心
+                        </h2>
+                        <p>创建、管理和测试您的专属音色库（此部分数据将会保存在服务端而并非浏览器缓存）</p>
+                    </div>
+
+                    <div class="voice-management-main">
+                        <!-- 自定义音色管理 -->
+                        <section class="voice-category">
+                            <div class="category-header">
+                                <h3>
+                                    <i class="fas fa-user-edit"></i>
+                                    我的音色库
+                                </h3>
+                                <button type="button" id="createNewVoice" class="btn-primary create-voice-btn">
+                                    <i class="fas fa-plus"></i>
+                                    创建新音色
+                                </button>
+                            </div>
+                            <div class="voice-grid" id="customVoicesGrid">
+                                <!-- 自定义音色卡片将在这里动态生成 -->
+                                <div class="empty-state" id="emptyVoiceState">
+                                    <div class="empty-icon">
+                                        <i class="fas fa-microphone-slash"></i>
+                                    </div>
+                                    <h4>还没有自定义音色</h4>
+                                    <p>点击上方"创建新音色"按钮开始创建您的专属音色</p>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- 使用说明 -->
+                        <section class="usage-tips">
+                            <h4><i class="fas fa-info-circle"></i> 使用说明</h4>
+                            <ul>
+                                <li>创建的音色会自动出现在"AI对话"和"手动合成"模块的"自定义音色列表"中</li>
+                                <li>建议上传8-10秒的清晰音频，音质越好效果越佳</li>
+                                <li>参考文本需要与音频内容完全一致</li>
+                                <li>音色名称支持中文，建议使用易识别的名称</li>
+                            </ul>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 侧边音频播放器 -->
+        <div id="sideAudioPlayer" class="side-audio-player hidden">
+            <div class="player-toggle" id="playerToggle">
+                <i class="fas fa-volume-up"></i>
+                <span class="toggle-text">播放器</span>
+            </div>
+            <div class="player-panel" id="playerPanel">
+                <div class="player-header">
+                    <div class="player-title">
+                        <i class="fas fa-music"></i>
+                        <span>语音播放</span>
+                    </div>
+                    <button type="button" id="closePlayer" class="close-btn" title="关闭播放器" aria-label="关闭播放器">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="player-content">
+                    <div class="player-text" id="playerTextContent">准备播放语音...</div>
+                    <div class="player-controls">
+                        <button type="button" id="playPauseBtn" class="player-btn" title="播放/暂停" aria-label="播放暂停">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <div class="progress-section">
+                            <input type="range" id="progressSlider" class="progress-slider" min="0" max="100" value="0" title="进度条">
+                            <div class="time-display">
+                                <span id="currentTime">0:00</span> / <span id="totalTime">0:00</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="player-actions">
+                        <button type="button" id="downloadAudio" class="action-btn" title="下载音频" aria-label="下载音频">
+                            <i class="fas fa-download"></i>
+                            <span>下载</span>
+                        </button>
+                        <button type="button" id="volumeBtn" class="action-btn" title="音量控制" aria-label="音量控制">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="100" title="音量">
+                    </div>
+                    <audio id="ttsAudioPlayer" preload="metadata">
+                        <source id="ttsAudioSource" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 音频播放器（隐藏） -->
+    <audio id="audioPlayer" style="display: none;"></audio>
+
+    <!-- 历史记录模态窗口 -->
+    <div id="historyModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-history"></i> 历史记录</h3>
+                <button type="button" class="modal-close" onclick="hideHistory()" title="关闭">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="historyList" class="history-list">
+                    <!-- 历史记录内容 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示词配置模态窗口 -->
+    <div id="promptConfigModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-robot"></i> 提示词配置</h3>
+                <button type="button" class="modal-close" onclick="closePromptConfig()" title="关闭">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- 当前提示词编辑 -->
+                <div class="setting-group">
+                    <label for="systemPromptText">系统提示词</label>
+                    <textarea id="systemPromptText" class="form-textarea" rows="8" placeholder="输入系统提示词，将作为AI对话的基础指令。例如：你是一个友好的助手，请用简洁明了的方式回答问题。"></textarea>
+                    <div class="setting-hint">此提示词会在每次对话开始时发送给AI，用于设定AI的角色和行为风格。</div>
+                </div>
+
+                <!-- 预设提示词列表 -->
+                <div class="setting-group">
+                    <div class="preset-header">
+                        <label>预设提示词</label>
+                        <button type="button" id="addPresetBtn" class="btn-small">
+                            <i class="fas fa-plus"></i> 添加预设
+                        </button>
+                    </div>
+                    <div id="presetList" class="preset-list">
+                        <!-- 预设列表将在这里动态生成 -->
+                    </div>
+                </div>
+
+                <!-- 添加新预设的表单 -->
+                <div id="newPresetForm" class="setting-group hidden">
+                    <label for="presetName">预设名称</label>
+                    <input type="text" id="presetName" class="form-input" placeholder="输入预设名称">
+                    <label for="presetContent">预设内容</label>
+                    <textarea id="presetContent" class="form-textarea" rows="4" placeholder="输入预设提示词内容"></textarea>
+                    <div class="preset-actions">
+                        <button type="button" id="savePresetBtn" class="btn-primary">保存</button>
+                        <button type="button" id="cancelPresetBtn" class="btn-secondary">取消</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="savePromptBtn" class="btn-primary">保存配置</button>
+                <button type="button" onclick="closePromptConfig()" class="btn-secondary">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 创建音色模态窗口 -->
+    <div id="createVoiceModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-microphone"></i> 创建自定义音色</h3>
+                <button type="button" class="modal-close" onclick="hideCreateVoiceModal()" title="关闭">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="create-voice-form">
+                    <div class="setting-group">
+                        <label for="voiceName">音色名称</label>
+                        <input type="text" id="voiceName" class="form-input" placeholder="为您的音色起个名字" maxlength="32">
+                    </div>
+
+                    <div class="setting-group">
+                        <label for="voiceAudioFile">上传参考音频</label>
+                        <input type="file" id="voiceAudioFile" class="form-file" accept="audio/*">
+                        <div class="file-hint">支持 MP3、WAV 格式，建议8-10秒，清晰无噪音</div>
+
+                        <div id="voiceAudioPreview" class="audio-preview hidden">
+                            <audio controls class="audio-preview-player">
+                                <source id="voiceAudioSource" type="audio/mpeg">
+                            </audio>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <label for="voiceReferenceText">参考文本</label>
+                        <textarea id="voiceReferenceText" class="form-textarea" rows="4" placeholder="请输入参考音频对应的文本内容，确保与音频内容一致"></textarea>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" id="saveVoice" class="btn-primary">
+                            <i class="fas fa-save"></i> 创建音色
+                        </button>
+                        <button type="button" id="cancelVoice" class="btn-secondary">
+                            <i class="fas fa-times"></i> 取消
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
