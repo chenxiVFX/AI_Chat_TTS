@@ -314,35 +314,23 @@ nohup python3 app.py > app.log 2>&1 &
 
 ---
 
-## ❓ 常见问题
-
-### Q: 端口5000被占用怎么办？
-A: 修改 `server/app.py` 中的端口号：
+### 端口5000被占用怎么办？
+修改 `server/app.py` 中的端口号：
 ```python
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=False)  # 改为8080
 ```
 
-### Q: 服务启动失败怎么办？
-A: 检查日志：
-```bash
-tail -n 100 /root/AI_chat_TTS/server/app.log
-```
 
-### Q: 外网无法访问怎么办？
-A: 检查以下几点：
-1. 防火墙是否开放端口
-2. 云服务器安全组是否配置
-3. 服务是否绑定到 `0.0.0.0`
 
-### Q: 如何备份自定义语音？
-A: 备份 `server/custom_voices.json` 文件：
+
+###如何备份自定义语音？
+备份 `server/custom_voices.json` 文件：
 ```bash
 cp /root/AI_Chat_TTS/server/custom_voices.json /root/backup/
 ```
 
-### Q: 如何修改服务端口？
-A: 修改后需要重启服务：
+### 如何修改服务端口？
 ```bash
 # 停止当前服务
 lsof -ti:5000 | xargs kill -9
@@ -356,4 +344,5 @@ nohup python3 app.py > app.log 2>&1 &
 - **本地开发**: 使用 `run_local.bat`
 - **服务器部署**: 按照Linux部署步骤
 - **外网访问**: 配置域名解析到服务器IP
+
 
