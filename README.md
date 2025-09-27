@@ -153,30 +153,113 @@ sudo nano .env
 SILICONFLOW_API_KEY=你的API密钥
 ```
 
-#### 4. 创建虚拟环境并安装依赖
+#### 4. 创建虚拟环境
 ```bash
+# 创建Python虚拟环境
 python3 -m venv venv
+
+# 激活虚拟环境
 source venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
+
+# 确认虚拟环境已激活（命令行前应该显示(venv)）
+which python  # 应该显示虚拟环境中的python路径
 ```
 
-#### 5. 测试运行
+#### 5. 安装项目依赖
 ```bash
-python server/app.py
+# 升级pip到最新版本
+pip install --upgrade pip
+
+# 安装项目依赖
+pip install -r requirements.txt
+
+# 验证关键依赖是否安装成功
+python -c "import flask, requests, dotenv; print('依赖安装成功')"
 ```
 
-#### 6. 后台运行
+#### 6. 测试运行
+```bash
+# 测试启动服务
+python server/app.py
+
+# 如果看到以下输出说明启动成功：
+# * Running on http://0.0.0.0:5000
+# 按 Ctrl+C 停止测试
+```
+
+#### 7. 后台运行（二选一）
+
+##### 选项A：使用Screen（推荐）
+```bash
+# 安装screen
+sudo apt install screen -y
+
+# 创建名为ai-chat的screen会话
+screen -S ai-chat
+
+# 在screen会话中启动服务
+python server/app.py
+
+# 分离screen会话（按 Ctrl+A，然后按 D）
+# 服务会在后台继续运行
+```
+
+**Screen常用命令：**
+```bash
+# 查看所有screen会话
+screen -ls
+
+# 重新连接到ai-chat会话
+screen -r ai-chat
+
+# 强制连接（如果会话被标记为Attached）
+screen -d -r ai-chat
+
+# 杀死screen会话
+screen -S ai-chat -X quit
+
+# 在screen会话内的快捷键：
+# Ctrl+A, D  : 分离会话
+# Ctrl+A, C  : 创建新窗口
+# Ctrl+A, K  : 杀死当前窗口
+# exit       : 退出当前窗口
+```
+
+##### 选项B：使用nohup
 ```bash
 # 使用nohup后台运行
 nohup python server/app.py > app.log 2>&1 &
 
 # 查看运行状态
 ps aux | grep python
+
+# 查看日志
+tail -f app.log
+
+# 停止服务
+pkill -f "python server/app.py"
 ```
 
 ### 服务管理
 
+#### 使用Screen管理服务
+```bash
+# 查看服务状态
+screen -ls
+
+# 重新连接查看服务日志
+screen -r ai-chat
+
+# 重启服务
+screen -S ai-chat -X quit  # 先停止
+screen -S ai-chat          # 重新创建会话
+python server/app.py       # 启动服务
+
+# 分离会话继续后台运行
+# 按 Ctrl+A, 然后按 D
+```
+
+#### 使用nohup管理服务
 ```bash
 # 查看服务状态
 ps aux | grep python
@@ -192,6 +275,22 @@ nohup python server/app.py > app.log 2>&1 &
 
 # 查看日志
 tail -f app.log
+```
+
+#### 通用管理命令
+```bash
+# 检查端口占用
+lsof -i :5000
+netstat -tlnp | grep 5000
+
+# 强制杀死占用5000端口的进程
+lsof -ti:5000 | xargs kill -9
+
+# 检查服务是否正常响应
+curl http://localhost:5000
+
+# 查看系统资源使用情况
+htop
 ```
 
 ## 🔧 功能说明
