@@ -8,7 +8,14 @@ let chatHistory = []; // 存储所有历史对话
 let currentChatId = null; // 当前对话ID
 let isAIResponding = false; // AI是否正在回复
 let currentStreamController = null; // 当前流式传输的控制器
-const DEFAULT_API_KEY = 'sk-zsbdzkakacedcsylxibuusskraicxcusvfungxunxnuumeze'; // 默认API密钥
+
+// 配置信息 - 从后端API获取
+let DEFAULT_API_KEY = ''; // 将从后端获取
+let ENABLE_BUILTIN_API_KEY = true;
+let API_URLS = {
+    chat: '',
+    tts: ''
+};
 
 // 提示词相关变量
 let enableSystemPrompt = false; // 是否启用系统提示词
@@ -128,9 +135,67 @@ function debugModuleStatus() {
     console.log('==================');
 }
 
+// 加载后端配置
+async function loadConfig() {
+    try {
+        console.log('🔄 开始加载配置...');
+        const response = await fetch('/api/config');
+        console.log('📡 配置请求响应状态:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('📦 收到配置数据:', data);
+        
+        if (data.success && data.config) {
+            DEFAULT_API_KEY = data.config.default_api_key;
+            ENABLE_BUILTIN_API_KEY = data.config.enable_builtin_api_key;
+            API_URLS = data.config.api_urls;
+            
+            console.log('✅ 配置加载成功:', {
+                hasApiKey: !!DEFAULT_API_KEY,
+                enableBuiltin: ENABLE_BUILTIN_API_KEY,
+                apiUrls: API_URLS
+            });
+        } else {
+            throw new Error('配置数据格式错误');
+        }
+    } catch (error) {
+        console.error('❌ 配置加载失败:', error);
+        // 暂时注释掉这个错误，直接使用默认配置
+        // throw error;
+        console.log('🔄 使用默认配置继续运行');
+        DEFAULT_API_KEY = 'sk-bcidwseaseyklkasafeispoitiinbxltyxyqjsvzpcorqoac';
+        ENABLE_BUILTIN_API_KEY = true;
+        API_URLS = {
+            chat: 'https://api.siliconflow.cn/v1/chat/completions',
+            tts: 'https://api.siliconflow.cn/v1/audio/speech'
+        };
+    }
+}
+
 // 最小化初始化 - 只关注核心功能
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM内容加载完成');
+    
+    // 首先加载配置信息
+    loadConfig().then(() => {
+        console.log('✅ 配置加载完成，开始初始化应用...');
+        initializeApp();
+    }).catch(error => {
+        console.error('❌ 配置加载失败:', error);
+        // 移除错误提示，直接初始化
+        // showNotification('配置加载失败，使用默认配置', 'warning');
+        console.log('🔄 使用默认配置继续初始化');
+        DEFAULT_API_KEY = 'sk-bcidwseaseyklkasafeispoitiinbxltyxyqjsvzpcorqoac';
+        initializeApp();
+    });
+});
+
+// 初始化应用程序
+function initializeApp() {
     
     try {
         // 第一步：确保AI对话模块可见
@@ -245,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (error) {
         console.error('初始化过程中出错:', error);
     }
-});
+}
 
 // 设置面板动态显示
 function setupSettingsDynamicDisplay() {

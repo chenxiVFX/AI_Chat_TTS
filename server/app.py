@@ -4,20 +4,24 @@ import os
 import json
 import time
 import requests
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
 
 app = Flask(__name__)
 
 # 配置
 app.config['SECRET_KEY'] = 'your-secret-key-here'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['MAX_CONTENT_LENGTH'] = int(os.getenv('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))
 
-# SiliconFlow API配置
-DEFAULT_API_KEY = ""
-SILICONFLOW_API_URL = "https://api.siliconflow.cn/v1/chat/completions"
-SILICONFLOW_TTS_URL = "https://api.siliconflow.cn/v1/audio/speech"
+# SiliconFlow API配置 - 从环境变量读取
+DEFAULT_API_KEY = os.getenv('SILICONFLOW_API_KEY', 'sk-bcidwseaseyklkasafeispoitiinbxltyxyqjsvzpcorqoac')
+SILICONFLOW_API_URL = os.getenv('SILICONFLOW_API_URL', 'https://api.siliconflow.cn/v1/chat/completions')
+SILICONFLOW_TTS_URL = os.getenv('SILICONFLOW_TTS_URL', 'https://api.siliconflow.cn/v1/audio/speech')
 
-# 管理员控制开关
-ENABLE_BUILTIN_API_KEY = True  # 设置为False可禁用内置API密钥功能
+# 管理员控制开关 - 从环境变量读取
+ENABLE_BUILTIN_API_KEY = os.getenv('ENABLE_BUILTIN_API_KEY', 'true').lower() == 'true'
 
 # 存储聊天历史（实际项目中应该使用数据库）
 chat_history = []
@@ -25,7 +29,7 @@ chat_history = []
 import json
 import os
 
-VOICES_DATA_FILE = 'custom_voices.json'
+VOICES_DATA_FILE = os.getenv('VOICES_DATA_FILE', 'custom_voices.json')
 
 def load_custom_voices():
     """从文件加载自定义音色数据"""
@@ -259,6 +263,25 @@ def upload_audio():
         
     except Exception as e:
         return jsonify({'error': f'上传错误: {str(e)}'}), 500
+
+@app.route('/api/config', methods=['GET'])
+def get_config():
+    """获取前端配置信息"""
+    try:
+        return jsonify({
+            'success': True,
+            'config': {
+                'default_api_key': DEFAULT_API_KEY,
+                'enable_builtin_api_key': ENABLE_BUILTIN_API_KEY,
+                'api_urls': {
+                    'chat': SILICONFLOW_API_URL,
+                    'tts': SILICONFLOW_TTS_URL
+                }
+            }
+        })
+    except Exception as e:
+        print(f"获取配置错误: {str(e)}")
+        return jsonify({'error': f'获取配置错误: {str(e)}'}), 500
 
 @app.route('/api/settings', methods=['GET', 'POST'])
 def settings():
@@ -1031,11 +1054,17 @@ def tts_postprocess():
         return jsonify({'error': f'后处理错误: {str(e)}'}), 500
 
 if __name__ == '__main__':
+    # 从环境变量读取服务器配置
+    host = os.getenv('SERVER_HOST', '0.0.0.0')
+    port = int(os.getenv('SERVER_PORT', 5000))
+    debug = os.getenv('DEBUG_MODE', 'false').lower() == 'true'
+    
     print("启动AI聊天服务器...")
-    print("访问地址: http://localhost:5000")
+    print(f"访问地址: http://localhost:{port}")
     print("API文档:")
     print("  POST /api/chat - 发送聊天消息")
     print("  POST /api/tts - 文本转语音")
+    print("  GET /api/config - 获取前端配置信息")
     print("  GET/POST /api/voices - 管理自定义音色")
     print("  DELETE /api/voices/<voice_id> - 删除自定义音色")
     print("  POST /api/upload-voice-audio - 上传音色参考音频")
@@ -1043,5 +1072,5 @@ if __name__ == '__main__':
     print("  GET/POST /api/settings - 获取/保存设置")
     print("  GET /api/chat-history - 获取聊天历史")
     print("  POST /api/clear-history - 清空聊天历史")
-    
-    app.run(debug=False, host='0.0.0.0', port=5000) 
+
+    app.run(debug=debug, host=host, port=port)
